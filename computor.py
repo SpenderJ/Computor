@@ -2,6 +2,21 @@ from __future__ import print_function
 import re
 
 
+def calc_polynomial_degree(equation):
+    maxdegree = 1
+    index = 0
+    while index < equation.__len__() and equation[index] != "":
+        num1 = equation[index]
+        str1 = re.split('[a-zA-Z]', num1)
+        deg1 = 1
+        if len(str1) > 1 and len(str1[1]) > 0:
+            deg1 = int(str1[1][1:])
+        if deg1 > maxdegree:
+            maxdegree = deg1
+        index += 1
+    return maxdegree
+
+
 def check_type(num1, num2):
 
     regexp = re.compile(r'[a-zA-Z]')
@@ -427,7 +442,7 @@ def computorv1():
     if intermediar != 0:
         print("Previous State:", end=" ")
         tmp = 0
-        while equation_splitted[tmp] != "":
+        while tmp < equation_splitted.__len__() and equation_splitted[tmp] != "":
             print(equation_splitted[tmp], end=" ")
             tmp += 1
         print("")
@@ -511,13 +526,13 @@ def computorv1():
     if intermediar != 0:
         print("Previous State:", end=" ")
         tmp = 0
-        while equation_splitted[tmp] != "":
+        while tmp < equation_splitted.__len__() and equation_splitted[tmp] != "":
             print(equation_splitted[tmp], end=" ")
             tmp += 1
         print("")
 
     index = 0
-    while equation_splitted[index] != "=":
+    while equation_splitted[index] != "=" and equation_splitted[1] != "=":
         # Parsing first num of the equation
         num1 = equation_splitted[index]
         str1 = re.split('[a-zA-Z]', num1)
@@ -550,9 +565,15 @@ def computorv1():
 
     print("Reduced form:", end=" ")
     ind = 0
-    while equation_splitted[ind] != "":
+    while ind < equation_splitted.__len__() and equation_splitted[ind] != "":
         print(equation_splitted[ind], end=" ")
         ind += 1
+    print("")
+
+    # Calcul of the polynomial degree of the equation
+
+    polynomial_degree = calc_polynomial_degree(equation_splitted)
+    print("Polynomial degree: " + str(polynomial_degree))
 
 
 def computorv2():
