@@ -104,7 +104,7 @@ def soustraction(equation, index, index2):
 
     i = 0
     # creating the returned array
-    dup = ["" for o in range(equation.__len__() + 10)]
+    dup = ["" for o in range(equation.__len__() + 2)]
     while i < index:
         dup[i] = equation[i]
         i += 1
@@ -176,7 +176,7 @@ def addition(equation, index, index2):
 
     i = 0
     # creating the returned array
-    dup = ["" for o in range(equation.__len__() + 10)]
+    dup = ["" for o in range(equation.__len__() + 2)]
     while i < index:
         dup[i] = equation[i]
         i += 1
@@ -250,7 +250,7 @@ def division(equation, index):
     x = x1 - x2
 
     # creating the returned array
-    dup = ["" for o in range(equation.__len__() + 10)]
+    dup = ["" for o in range(equation.__len__() + 2)]
     while i < index:
         dup[i] = equation[i]
         i += 1
@@ -323,7 +323,7 @@ def multiplication(equation, index):
     x = x1 + x2
 
     # creating the returned array
-    dup = ["" for o in range(equation.__len__() + 10)]
+    dup = ["" for o in range(equation.__len__() + 2)]
     while i < index:
         dup[i] = equation[i]
         i += 1
@@ -407,7 +407,7 @@ def computorv1():
     dupi = 0
     dup = []
     while remove_left_side(equation_splitted) != 1:
-        dup = ["" for p in range(equation_splitted.__len__() + 10)]
+        dup = ["" for p in range(equation_splitted.__len__() + 2)]
         index = 0
         while equation_splitted[index] != "=":
             dup[index] = equation_splitted[index]
@@ -458,7 +458,7 @@ def computorv1():
         while equation_splitted[index2 - 1] != "=":
             if check_type(equation_splitted[index], equation_splitted[index2]) == 1:
                 reset = 1
-                dupped = ["" for z in range(equation_splitted.__len__() + 10)]
+                dupped = ["" for z in range(equation_splitted.__len__() + 2)]
                 ind = 0
                 while ind < index:
                     dupped[ind] = equation_splitted[ind]
@@ -477,6 +477,38 @@ def computorv1():
             index = 0
         else:
             index += 2
+
+    #  Now time to remove the 0
+
+    index = 0
+    while equation_splitted[index] != "=":
+        # Parsing first num of the equation
+        num1 = equation_splitted[index]
+        str1 = re.split('[a-zA-Z]', num1)
+        res1 = 0  # value of the int at the beginning of the first expression
+
+        if len(str1[0]) > 0 and str1[0][0].isdigit():
+            res1 = float(re.split('[a-zA-Z]', num1)[0])
+        if len(str1[0]) > 0 and res1 == float(0) and str1[0][0].isdigit():
+            dupped = ["" for z in range(equation_splitted.__len__() + 2)]
+            ind = 0
+            while ind < index:
+                dupped[ind] = equation_splitted[ind]
+                ind += 1
+            if index > 0:
+                dupped[ind - 1] = ""
+                ind -= 1
+                index += 1
+            else:
+                index += 1
+            while index < equation_splitted.__len__():
+                dupped[ind] = equation_splitted[index]
+                ind += 1
+                index += 1
+            equation_splitted = dupped
+            index = 0
+        else:
+            index += 1
 
     #  Now we do have the simplified equation
 
