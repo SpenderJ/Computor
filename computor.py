@@ -83,6 +83,7 @@ def r_first_degree(equation):
     print("The most simplified fraction is : " + num + " / " + str(neg * res1))
     print("The solution is: " + str(finish))
 
+
 def r_second_degree(equation):
     a = 0
     b = 0
@@ -126,7 +127,10 @@ def r_second_degree(equation):
         res1 = (-b) / (2 * a)
         print(res1)
     else:
-        print("Discriminant is strictly negative, there is no solutions")
+        print("Discriminant is strictly negative, there is no real solutions")
+        print("Here are the 2 unreal solutions")
+        print("( " + str(-b) + " + i" + str(sqrt(-delta)) + " ) / " + str(2 * a))
+        print("( " + str(-b) + " - i" + str(sqrt(-delta)) + " ) / " + str(2 * a))
     return
 
 
