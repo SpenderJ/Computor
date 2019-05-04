@@ -3,13 +3,17 @@
 
 ### What is ComputorV1
 
-ComputorV1 is on the first project post cirlce of the algorithmic branch in 42 Paris.
+ComputorV1 is the first project of the computor branch in the algorithmic module at 42.
 
-The goal of the project is to create a program which will resolve equation simple equation (polynomial equation degree 2 <= )
+The goal of the project is to implement basic math tools which could be usefull for a lot of projects.
+There is no forced languages, I decided to use python.
 
 ### What is ComputorV2
 
-ComputorV2 is the project after ComputorV1, in this project, you are expected to create your own calculator in command line. But you'll also have to implement matricial calcul, function solver, calcul on imaginary numbers...
+ComputorV2 is the second and last project of the computor branch in the algorithmic module at 42.
+
+The goal of the project is to create, after having implemented computorv1, your own bc function. You will have to implement your computorv1, matricial calcul, function solver, imaginary number calcul etc...
+There is no forced languages, I decided to use python.
 
 ## Running the tests
 
@@ -20,7 +24,7 @@ Computorv2 : Not Pushed Yet
 If you want to test our project, you just have to build then
 
 ```
-python run.py
+python computor.py
 ```
 
 And everything will be in the command line :)
