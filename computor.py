@@ -1,14 +1,144 @@
 from __future__ import print_function
+from math import *
 import re
 
 
+def r_zero_degree(equation):
+    if float(equation[0]) != float(equation[2]):
+        print("There is no solution to this equation, " + str(float(equation[0])) + " != " + str(float(equation[2])))
+    else:
+        print("This equation is valid, for whatever x value, 0.00 == 0.00\n")
+    return
+
+
+def pgcd(a, b):
+    if b == 0:
+        return a
+    else:
+        return pgcd(b, a % b)
+
+
+def r_first_degree(equation):
+    neg = 1
+    if equation[1] == "-":
+        neg = -1
+    if equation[1] != "=":
+        try:
+            float(equation[0])
+            num = equation[0]
+            if neg == -1:
+                if equation[2][0] == '-':
+                    numx = equation[2][1:]
+                else:
+                    numx = '-' + equation[2]
+            else:
+                numx = equation[2]
+        except ValueError:
+            if neg == -1:
+                if equation[2][0] == '-':
+                    num = equation[2][1:]
+                else:
+                    num = '-' + equation[2]
+            else:
+                num = equation[2]
+            numx = equation[0]
+    else:
+        try:
+            float(equation[0])
+            num = equation[0]
+            numx = "0x"
+        except ValueError:
+            num = 1
+            numx = equation[0]
+
+    regexp = re.compile(r'[a-zA-Z]')
+    # Parsing num x of the equation
+    str1 = re.split('[a-zA-Z]', numx)
+    res1 = 1  # value of the int at the beginning of the first expression
+    if len(str1[0]) > 0 and (str1[0][0].isdigit() or str1[0][0] == '-'):
+        res1 = float(re.split('[a-zA-Z]', numx)[0])
+    deg1 = 1  # Degree value first expression
+
+    if len(str1) > 1 and len(str1[1]) > 0:
+        deg1 = int(str1[1][1:])
+    x1 = 0  # Is x in the first expression
+    if regexp.search(numx):
+        x1 = 1 * deg1
+    for j in numx:
+        if j.isalpha():
+            charx = j
+    if res1 == 0:
+        print("Can't process a division by 0\nThere is no solution to this equation")
+        exit(0)
+    finish = float(num) / float(res1)
+    if equation[1] != "=":
+        finish *= -1
+    div = pgcd(float(num), res1)
+    if div <= float(num) and div <= res1:
+        num = str(float(num) / div)
+        res1 = res1 / div
+    neg = 1
+    if equation[1] != "=":
+        neg = -1
+    print("The most simplified fraction is : " + num + " / " + str(neg * res1))
+    print("The solution is: " + str(finish))
+
+def r_second_degree(equation):
+    a = 0
+    b = 0
+    c = 0
+    index = 0
+    while index < equation.__len__() and equation[index] != "=" and (index == 0 or equation[index - 1] != "="):
+        num1 = equation[index]
+        str1 = re.split('[a-zA-Z]', num1)
+        res1 = 1
+        neg = 1
+        if len(str1[0]) > 0:
+            res1 = float(re.split('[a-zA-Z]', num1)[0])
+        deg1 = 0
+        if len(str1) > 1:
+            deg1 = 1
+        if len(str1) > 1 and len(str1[1]) > 0:
+            deg1 = int(str1[1][1:])
+        if index > 0 and equation[index - 1] == "-":
+            neg = -1
+        if deg1 == 0:
+            c = float(equation[index]) * neg
+        elif deg1 == 1:
+            b = res1 * neg
+        elif deg1 == 2:
+            a = res1 * neg
+        else:
+            print("Unkown bug, please report it")
+            exit(0)
+        index += 2
+
+    delta = (b * b) - (4 * (a * c))
+    print("Discriminant = " + str(delta))
+    if delta > 0:
+        print("Discriminant is stricly positive, the two solutions are:")
+        res1 = (-b - sqrt(delta)) / (2 * a)
+        res2 = (-b + sqrt(delta)) / (2 * a)
+        print(res1)
+        print(res2)
+    elif delta == 0:
+        print("Discriminant is equals to 0, the solution is")
+        res1 = (-b) / (2 * a)
+        print(res1)
+    else:
+        print("Discriminant is strictly negative, there is no solutions")
+    return
+
+
 def calc_polynomial_degree(equation):
-    maxdegree = 1
+    maxdegree = 0
     index = 0
     while index < equation.__len__() and equation[index] != "":
         num1 = equation[index]
         str1 = re.split('[a-zA-Z]', num1)
-        deg1 = 1
+        deg1 = 0
+        if len(str1) > 1:
+            deg1 = 1
         if len(str1) > 1 and len(str1[1]) > 0:
             deg1 = int(str1[1][1:])
         if deg1 > maxdegree:
@@ -492,7 +622,46 @@ def computorv1():
 
     #  From here, the equation only contains addition and substraction and is equal to 0
 
+    if intermediar != 0:
+        print("Previous State:", end=" ")
+        tmp = 0
+        while tmp < equation_splitted.__len__() and equation_splitted[tmp] != "":
+            print(equation_splitted[tmp], end=" ")
+            tmp += 1
+        print("")
+
+    index = 0
+    while equation_splitted[index] != "=":
+        regexp = re.compile(r'[a-zA-Z]')
+        # Parsing first num of the equation
+        num1 = equation_splitted[index]
+        str1 = re.split('[a-zA-Z]', num1)
+        res1 = 1  # value of the int at the beginning of the first expression
+        if len(str1[0]) > 0 and str1[0][0].isdigit():
+            res1 = float(re.split('[a-zA-Z]', num1)[0])
+        deg1 = 1  # Degree value first expression
+
+        if len(str1) > 1 and len(str1[1]) > 0:
+            deg1 = int(str1[1][1:])
+        x1 = 0  # Is x in the first expression
+        if regexp.search(num1):
+            x1 = 1 * deg1
+        for j in num1:
+            if j.isalpha():
+                charx = j
+        if deg1 == 0:
+            equation_splitted[index] = str(res1)
+        index += 1
+
     #  Time to sort the output so we have the cleaned output + op done
+
+    if intermediar != 0:
+        print("Previous State:", end=" ")
+        tmp = 0
+        while tmp < equation_splitted.__len__() and equation_splitted[tmp] != "":
+            print(equation_splitted[tmp], end=" ")
+            tmp += 1
+        print("")
 
     index = 0
     reset = 0
@@ -551,7 +720,7 @@ def computorv1():
                 ind -= 1
                 index += 1
             else:
-                index += 1
+                index += 2
             while index < equation_splitted.__len__():
                 dupped[ind] = equation_splitted[index]
                 ind += 1
@@ -574,6 +743,19 @@ def computorv1():
 
     polynomial_degree = calc_polynomial_degree(equation_splitted)
     print("Polynomial degree: " + str(polynomial_degree))
+
+    if polynomial_degree >= 3:
+        print("The polynomial degree is stricly greater than 2, I can't solve.")
+        exit(0)
+    elif polynomial_degree == 2:
+        r_second_degree(equation_splitted)
+    elif polynomial_degree == 1:
+        r_first_degree(equation_splitted)
+    elif polynomial_degree == 0:
+        r_zero_degree(equation_splitted)
+    else:
+        print("Unexpected error, please report the bug")
+        exit(0)
 
 
 def computorv2():
