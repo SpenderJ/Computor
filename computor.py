@@ -246,6 +246,9 @@ def division(equation, index):
 
     # Getting the result
     x = 0
+    if res2 == 0:
+        print("Division by 0 is impossible, program will exit")
+        exit(0)
     totalres = res1 / res2
     x = x1 - x2
 
@@ -351,8 +354,10 @@ def multiplication(equation, index):
 
 def computorv1():
     prompt_equation = " Enter an equation to be solved \n "
+    prompt_intermediar = "Do you want to see intermediar operations, 0 not to, 1 to\n"
     num = 0
     equal = 0
+    intermediar = 0
     equation = []
     isvar = re.compile(r'[a-zA-Z]')
 
@@ -362,7 +367,22 @@ def computorv1():
         print("No equation entered\n")
         exit(e)
 
+    try:
+        intermediar = int(raw_input(prompt_intermediar))
+    except ValueError as e:
+        print("You have to enter 0 not to see intermediar operations and any other number to see them")
+        exit(e)
+
     equation_splitted = equation.split()
+
+    if intermediar != 0:
+        print("Previous State:", end=" ")
+        tmp = 0
+        while tmp < equation_splitted.__len__() and equation_splitted[tmp] != "":
+            print(equation_splitted[tmp], end=" ")
+            tmp += 1
+        print("")
+
     for x in equation_splitted:
         if num == 0:
             try:
@@ -403,6 +423,14 @@ def computorv1():
             exit(0)
 
     #  Change the equation so we have 0 on the left side
+
+    if intermediar != 0:
+        print("Previous State:", end=" ")
+        tmp = 0
+        while equation_splitted[tmp] != "":
+            print(equation_splitted[tmp], end=" ")
+            tmp += 1
+        print("")
 
     dupi = 0
     dup = []
@@ -479,6 +507,14 @@ def computorv1():
             index += 2
 
     #  Now time to remove the 0
+
+    if intermediar != 0:
+        print("Previous State:", end=" ")
+        tmp = 0
+        while equation_splitted[tmp] != "":
+            print(equation_splitted[tmp], end=" ")
+            tmp += 1
+        print("")
 
     index = 0
     while equation_splitted[index] != "=":
