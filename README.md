@@ -18,7 +18,7 @@ There is no forced languages, I decided to use python.
 ## Running the tests
 
 My project mark is : 
-Computorv1 : Not Pushed Yet
+Computorv1 : 125/100
 Computorv2 : Not Pushed Yet
 
 If you want to test our project, you just have to build then
