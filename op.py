@@ -215,16 +215,29 @@ def division(equation, index):
     regexp = re.compile(r'[a-zA-Z]')
 
     # Getting values and x
+    quit = 0
     if regexp.search(num1):
         x1 = 1 * deg1
+        k = 0
         for j in num1:
-            if j.isalpha():
-                charx = j
+            if j.isalpha() and quit != 1:
+                p = num1[k:].find('^')
+                if p == -1:
+                    p = len(num1)
+                charx = num1[k:p]
+                quit = 1
+            k += 1
     if regexp.search(num2):
+        k = 0
         x2 = 1 * deg2
         for j in num2:
-            if j.isalpha():
-                charx = j
+            if j.isalpha() and quit != 1:
+                p = num2[k:].find('^')
+                if p == -1:
+                    p = len(num2)
+                charx = num2[k:p]
+                quit = 1
+            k += 1
 
     # Getting the result
     x = 0
@@ -287,20 +300,33 @@ def multiplication(equation, index):
     x2 = 0  # Is x in the second expression
 
     # Setting up global variables
-    charx = 'x'
+    charx = ""
     regexp = re.compile(r'[a-zA-Z]')
 
     # Getting values and x
+    quit = 0
     if regexp.search(num1):
         x1 = 1 * deg1
+        k = 0
         for j in num1:
-            if j.isalpha():
-                charx = j
+            if j.isalpha() and quit != 1:
+                p = num1[k:].find('^')
+                if p == -1:
+                    p = len(num1)
+                charx = num1[k:p]
+                quit = 1
+            k += 1
     if regexp.search(num2):
+        k = 0
         x2 = 1 * deg2
         for j in num2:
-            if j.isalpha():
-                charx = j
+            if j.isalpha() and quit != 1:
+                p = num2[k:].find('^')
+                if p == -1:
+                    p = len(num2)
+                charx = num2[k:p]
+                quit = 1
+            k += 1
 
     # Getting the result
     x = 0

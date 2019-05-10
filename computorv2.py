@@ -6,6 +6,7 @@ from op import soustraction
 from op import check_type
 from math import *
 import re
+import numpy as np
 
 
 def check_prio_op(equation):
@@ -13,6 +14,23 @@ def check_prio_op(equation):
         if x == "*" or x == "/":
             return 0
     return 1
+
+
+def check_parentheses(equation):
+    score_po = 0
+    score_neg = 0
+    for x in equation:
+        if x == "(":
+            score_po += 1
+        elif x == ")":
+            score_neg += 1
+    if score_po == 0 and score_neg == 0:
+        return 0
+    elif score_po != score_neg:
+        print("Wrong format of the equation (might be cause because unconsistent parentheses number)")
+        return -1
+    else:
+        return 1
 
 
 def clean_equation(equation_splitted):
@@ -41,6 +59,36 @@ def clean_equation(equation_splitted):
     equation_splitted = filter(None, equation_splitted)
     equation_splitted = filter(str.strip, equation_splitted)
     return equation_splitted
+
+
+def parentheses_score(equation):
+    score = 0
+    best = 0
+    for x in equation:
+        if x == "(":
+            score += 1
+            if score > best:
+                best = score
+        elif x == ")":
+            score -= 1
+    return best
+
+
+def develop_parentheses(equation_splitted):
+    index = 0
+    while parentheses_score(equation_splitted) != 0:
+        score = 0
+        best = parentheses_score(equation_splitted)
+        while index < len(equation_splitted) and score != best:
+            if equation_splitted[index] == "(":
+                score += 1
+            elif equation_splitted[index] == ")":
+                score -= 1
+
+        #  The most protected parenthese has been localised. Now time to develop it content
+
+            
+
 
 
 def operate_secundary_operators(equation_splitted):
@@ -114,11 +162,15 @@ def check_defined_equation(equation_splitted, unknown):
                         or re.match('([0-9]*)\^var[a-zA-Z_]([a-zA-Z0-9_]*)', x)\
                         or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)\^([0-9]*)', x):
                     num = 1
+                elif x == "(":
+                    num = 0
                 else:
                     print("Error in equation, please check Format")
                     return -1
-        elif num == 1 and (x == "+" or x == "-" or x == "*" or x == "/"):
+        elif num == 1 and (x == "+" or x == "-" or x == "*" or x == "/" or x == "%"):
             num = 0
+        elif num == 1 and x == ")":
+            num = 1
         else:
             print("Error in equation, please check Format")
             return -1
@@ -126,10 +178,35 @@ def check_defined_equation(equation_splitted, unknown):
     if num == 0:
         print("Error in equation definition, can't end on a sign")
         return -1
+    return 0
+
+
+def split_parentheses(equation_splitted):
+    index = 0
+    index_dup = 0
+    dup = ["" for o in range((len(equation_splitted) + 1) * 2)]
+    while index < len(equation_splitted):
+        if re.match('fun[a-zA-Z0-9][a-zA-Z0-9]*\([a-zA-Z0-9][a-zA-Z0-9]*\)', equation_splitted[index]) is None\
+                and (re.search('[(]+', equation_splitted[index]) or re.search('[)]+', equation_splitted[index])):
+            dup2 = re.split('([()])', equation_splitted[index])
+            for x in dup2:
+                dup[index_dup] = x
+                index_dup += 1
+            index += 1
+        else:
+            dup[index_dup] = equation_splitted[index]
+            index_dup += 1
+            index += 1
+    return dup
+
 
 
 def define_var_res(variable_arr, var_name, equation_splitted):
-    if check_defined_equation(equation_splitted, var_name) == -1:
+    parsed = ''.join(equation_splitted)
+    equation_splitted = re.split('([ %()/*=])', parsed)
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
+    if check_defined_equation(equation_splitted, var_name) == -1 or check_parentheses(equation_splitted) == -1:
         return -1
     equation_splitted = operate_priority_operators(equation_splitted)
     equation_splitted = clean_equation(equation_splitted)
@@ -139,7 +216,11 @@ def define_var_res(variable_arr, var_name, equation_splitted):
 
 
 def define_fun_res(function_arr, fun_name, unknown, equation_splitted):
-    if check_defined_equation(equation_splitted, unknown) == -1:
+    equation_splitted = split_parentheses(equation_splitted)
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
+    print(equation_splitted)
+    if check_defined_equation(equation_splitted, unknown) == -1 or check_parentheses(equation_splitted) == -1:
         return -1
     equation_splitted = operate_priority_operators(equation_splitted)
     equation_splitted = clean_equation(equation_splitted)
@@ -223,7 +304,7 @@ def exec_computorv2():
 
         #  Now parsing the input
 #        equation = input.replace(" ", "")
-        equation_splitted = re.split('([ /*=])', input)
+        equation_splitted = re.split('([ %/*=])', input)
         equation_splitted = filter(None, equation_splitted)
         equation_splitted = filter(str.strip, equation_splitted)
 
