@@ -1,5 +1,6 @@
 from __future__ import print_function
 from math import *
+from computorv2 import exec_computorv2
 import re
 
 
@@ -522,7 +523,9 @@ def computorv1():
         print("You have to enter 0 not to see intermediar operations and any other number to see them")
         exit(e)
 
-    equation_splitted = equation.split()
+    equation_splitted = re.split('([ /*=])', equation)
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
 
     if intermediar != 0:
         print("Previous State:", end=" ")
@@ -763,8 +766,7 @@ def computorv1():
 
 
 def computorv2():
-    prompt_computorv2 = ">Being implemented \n"
-    print(prompt_computorv2)
+    exec_computorv2()
 
 
 #  Sorting the 2 different algorithms
