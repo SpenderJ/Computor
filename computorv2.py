@@ -150,9 +150,9 @@ def operate_priority_operators(equation_splitted):
 
 def check_defined_equation(equation_splitted, unknown):
     num = 0
-    expo_1 = r"([0-9]*)\^" + r"([0-9]*)" + re.escape(unknown)
-    expo_2 = r"([0-9]*)" + re.escape(unknown) + r"\^([0-9]*)"
-    expo_3 = r"([0-9]*)" + re.escape(unknown) + r"\^" + r"([0-9]*)" + re.escape(unknown)
+    expo_1 = r"([0-9-i]*)\^" + r"([0-9-i]*)" + re.escape(unknown)
+    expo_2 = r"([0-9-i]*)" + re.escape(unknown) + r"\^([0-9-i]*)"
+    expo_3 = r"([0-9-i]*)" + re.escape(unknown) + r"\^" + r"([0-9-i]*)" + re.escape(unknown)
 
     for x in equation_splitted:
         if num == 0:
@@ -160,13 +160,13 @@ def check_defined_equation(equation_splitted, unknown):
                 float(x)
                 num = 1
             except ValueError:
-                if re.match('([0-9]*)\^([0-9]*)', x) or x == unknown or re.match(expo_1, x) or re.match(expo_2, x)\
-                        or re.match(expo_3, x)\
+                if re.match('([0-9i]*)\^([0-9i]*)', x) or x == unknown or re.match(expo_1, x) or re.match(expo_2, x)\
+                        or re.match(expo_3, x) or x == "i" or re.match("([0-9\-]*)i", x)\
                         or re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\([a-zA-Z_]([a-zA-Z0-9_]*)\)', x)\
                         or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', x)\
                         or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)\^var[a-zA-Z_]([a-zA-Z0-9_]*)', x)\
-                        or re.match('([0-9]*)\^var[a-zA-Z_]([a-zA-Z0-9_]*)', x)\
-                        or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)\^([0-9]*)', x):
+                        or re.match('([0-9-]*)\^var[a-zA-Z_]([a-zA-Z0-9_]*)', x)\
+                        or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)\^([0-9-i]*)', x):
                     num = 1
                 elif x == "(":
                     num = 0
@@ -206,10 +206,8 @@ def split_parentheses(equation_splitted):
     return dup
 
 
-
 def define_var_res(variable_arr, var_name, equation_splitted):
-    parsed = ''.join(equation_splitted)
-    equation_splitted = re.split('([ %()/*=])', parsed)
+    equation_splitted = split_parentheses(equation_splitted)
     equation_splitted = filter(None, equation_splitted)
     equation_splitted = filter(str.strip, equation_splitted)
     if check_defined_equation(equation_splitted, var_name) == -1 or check_parentheses(equation_splitted) == -1:
