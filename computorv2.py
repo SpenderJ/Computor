@@ -74,21 +74,27 @@ def parentheses_score(equation):
     return best
 
 
-def develop_parentheses(equation_splitted):
-    index = 0
-    while parentheses_score(equation_splitted) != 0:
-        score = 0
-        best = parentheses_score(equation_splitted)
-        while index < len(equation_splitted) and score != best:
-            if equation_splitted[index] == "(":
-                score += 1
-            elif equation_splitted[index] == ")":
-                score -= 1
+def apply_rpn(equation_splitted):
+    S, L2 = [], []
 
-        #  The most protected parenthese has been localised. Now time to develop it content
+    table = {"*": 1, "/": 1, "+": 0, "-": 0, "(": -1, ")": -1}
+    for i in equation_splitted:
+        if i != "-" and i != "+" and i != "*" and i != "/" and i != "%":
+            L2.append(i)
+        elif i == "(":
+            S.append(i)
+        elif i == ")":
+            while S[-1] != "(":
+                L2.append(S.pop())
+            S.pop()
+        else:
+            if len(S) != 0 and (table[S[-1]] >= table[i]):
+                L2.append(S.pop())
+            S.append(i)
 
-            
-
+    while len(S) != 0:
+        L2.append(S.pop())
+    print(L2)
 
 
 def operate_secundary_operators(equation_splitted):
@@ -208,31 +214,34 @@ def define_var_res(variable_arr, var_name, equation_splitted):
     equation_splitted = filter(str.strip, equation_splitted)
     if check_defined_equation(equation_splitted, var_name) == -1 or check_parentheses(equation_splitted) == -1:
         return -1
-    equation_splitted = operate_priority_operators(equation_splitted)
-    equation_splitted = clean_equation(equation_splitted)
-    equation_splitted = operate_secundary_operators(equation_splitted)
+    new = []
+    new.append(var_name)
+    new.append(equation_splitted)
+    variable_arr.append(new)
     for x in equation_splitted:
         print(x, end=" ")
+    return 1
 
 
 def define_fun_res(function_arr, fun_name, unknown, equation_splitted):
     equation_splitted = split_parentheses(equation_splitted)
     equation_splitted = filter(None, equation_splitted)
     equation_splitted = filter(str.strip, equation_splitted)
-    print(equation_splitted)
     if check_defined_equation(equation_splitted, unknown) == -1 or check_parentheses(equation_splitted) == -1:
         return -1
-    equation_splitted = operate_priority_operators(equation_splitted)
-    equation_splitted = clean_equation(equation_splitted)
-    equation_splitted = operate_secundary_operators(equation_splitted)
+    new = []
+    new.append(fun_name)
+    new.append(equation_splitted)
+    function_arr.append(new)
     for x in equation_splitted:
         print(x, end=" ")
+    return 1
 
 
 def set_fun_val(equation_splitted, function_arr):
     if re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\([a-zA-Z_]([a-zA-Z0-9_]*)\)', equation_splitted[0])\
             and len(equation_splitted) > 2 and equation_splitted[1] == "=":
-        fun_name = equation_splitted[0].split('(')[0][3:]
+        fun_name = equation_splitted[0].split('(')[0]
         unknown = equation_splitted[0].split('(')[1][:-1]
         return define_fun_res(function_arr, fun_name, unknown, equation_splitted[2:])
     else:
@@ -244,7 +253,7 @@ def set_fun_val(equation_splitted, function_arr):
 def set_var_val(equation_splitted, variable_arr):
     if re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', equation_splitted[0])\
             and len(equation_splitted) > 2 and equation_splitted[1] == "=":
-        var_name = equation_splitted[0][3:]
+        var_name = equation_splitted[0]
         return define_var_res(variable_arr, var_name, equation_splitted[2:])
     else:
         print("Error in variable definition")
@@ -286,8 +295,8 @@ def exec_computorv2():
 
     prompt = "$Juspende | Computorv2 >"
     exit_message = "Thanks for Using my Computorv2"
-    variable_arr = [[]]
-    function_arr = [[]]
+    variable_arr = []
+    function_arr = []
 
     while (42):
 
@@ -303,14 +312,15 @@ def exec_computorv2():
             print(exit_message)
 
         #  Now parsing the input
-#        equation = input.replace(" ", "")
         equation_splitted = re.split('([ %/*=])', input)
         equation_splitted = filter(None, equation_splitted)
         equation_splitted = filter(str.strip, equation_splitted)
 
         ret = assignation_parse(equation_splitted, variable_arr, function_arr)
-        if ret != 0:
+        if ret == 1:
             print("\nAssignation Done")
-        elif ret != -1:
+        elif ret == 0:
             calcul_resolve(equation_splitted, variable_arr, function_arr)
             print("Calcul")
+        else:
+            print("Error")
