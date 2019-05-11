@@ -214,10 +214,20 @@ def define_var_res(variable_arr, var_name, equation_splitted):
     equation_splitted = filter(str.strip, equation_splitted)
     if check_defined_equation(equation_splitted, var_name) == -1 or check_parentheses(equation_splitted) == -1:
         return -1
-    new = []
-    new.append(var_name)
-    new.append(equation_splitted)
-    variable_arr.append(new)
+    override = 0
+    for x in variable_arr:
+        if x[0] == var_name:
+            override = 1
+    if override == 0:
+        new = []
+        new.append(var_name)
+        new.append(equation_splitted)
+        variable_arr.append(new)
+    else:
+        index = 0
+        while variable_arr[index][0] != var_name:
+            index += 1
+        variable_arr[index][1] = equation_splitted
     for x in equation_splitted:
         print(x, end=" ")
     return 1
@@ -229,10 +239,20 @@ def define_fun_res(function_arr, fun_name, unknown, equation_splitted):
     equation_splitted = filter(str.strip, equation_splitted)
     if check_defined_equation(equation_splitted, unknown) == -1 or check_parentheses(equation_splitted) == -1:
         return -1
-    new = []
-    new.append(fun_name)
-    new.append(equation_splitted)
-    function_arr.append(new)
+    override = 0
+    for x in function_arr:
+        if x[0] == fun_name:
+            override = 1
+    if override == 0:
+        new = []
+        new.append(fun_name)
+        new.append(equation_splitted)
+        function_arr.append(new)
+    else:
+        index = 0
+        while function_arr[index][0] != fun_name:
+            index += 1
+        function_arr[index][1] = equation_splitted
     for x in equation_splitted:
         print(x, end=" ")
     return 1
