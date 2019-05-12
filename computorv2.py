@@ -74,6 +74,39 @@ def parentheses_score(equation):
     return best
 
 
+def parse_irregular_op(equation_splitted, unknown):
+    L2 = []
+    expo_4 = r"([0-9-i][0-9-i]*)" + re.escape(unknown)
+    expo_5 = r"([0-9-][0-9-]*)" + "i"
+    c = 0
+    for x in equation_splitted:
+        c = 0
+        if x[0] == "-":
+            c = 1
+        if re.match(expo_4, x) and unknown != "":
+            if c == 1:
+                tr = filter(str.isdigit, x[c:])
+                L2.append('-' + str(tr))
+            else:
+                L2.append(filter(str.isdigit, x))
+            L2.append("*")
+            L2.append(unknown)
+        elif re.match(expo_5, x):
+            if c == 1:
+                tr = filter(str.isdigit, x[c:])
+                L2.append('-' + str(tr))
+            else:
+                L2.append(filter(str.isdigit, x))
+            L2.append("*")
+            L2.append("i")
+        else:
+            L2.append(x)
+
+    equation_splitted = L2
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
+    return equation_splitted
+
 def apply_rpn(equation_splitted):
     S, L2 = [], []
 
@@ -153,6 +186,7 @@ def check_defined_equation(equation_splitted, unknown):
     expo_1 = r"([0-9-i]*)\^" + r"([0-9-i]*)" + re.escape(unknown)
     expo_2 = r"([0-9-i]*)" + re.escape(unknown) + r"\^([0-9-i]*)"
     expo_3 = r"([0-9-i]*)" + re.escape(unknown) + r"\^" + r"([0-9-i]*)" + re.escape(unknown)
+    expo_4 = r"([0-9-i]*)" + re.escape(unknown)
 
     for x in equation_splitted:
         if num == 0:
@@ -160,22 +194,22 @@ def check_defined_equation(equation_splitted, unknown):
                 float(x)
                 num = 1
             except ValueError:
-                if re.match('([0-9i]*)\^([0-9i]*)', x) or x == unknown or re.match(expo_1, x) or re.match(expo_2, x)\
+                if x == "(":
+                    num = 0
+                elif re.match('([0-9i]*)\^([0-9i]*)', x) or x == unknown or re.match(expo_1, x) or re.match(expo_2, x)\
                         or re.match(expo_3, x) or x == "i" or re.match("([0-9\-]*)i", x)\
                         or re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\([a-zA-Z_]([a-zA-Z0-9_]*)\)', x)\
-                        or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', x)\
+                        or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', x) or re.match(expo_4, x)\
                         or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)\^var[a-zA-Z_]([a-zA-Z0-9_]*)', x)\
                         or re.match('([0-9-]*)\^var[a-zA-Z_]([a-zA-Z0-9_]*)', x)\
                         or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)\^([0-9-i]*)', x):
                     num = 1
-                elif x == "(":
-                    num = 0
                 else:
                     print("Error in equation, please check Format")
                     return -1
         elif num == 1 and (x == "+" or x == "-" or x == "*" or x == "/" or x == "%"):
             num = 0
-        elif num == 1 and x == ")":
+        elif num == 1 and (x == ")" or x[0] == "^"):
             num = 1
         else:
             print("Error in equation, please check Format")
@@ -278,6 +312,8 @@ def define_var_res(variable_arr, var_name, equation_splitted):
     else:
         if check_defined_equation(equation_splitted, "") == -1 or check_parentheses(equation_splitted) == -1:
             return -1
+        else:
+            equation_splitted = parse_irregular_op(equation_splitted, "")
     override = 0
     for x in variable_arr:
         if x[0] == var_name:
@@ -306,6 +342,8 @@ def define_fun_res(function_arr, fun_name, unknown, equation_splitted):
     equation_splitted = filter(str.strip, equation_splitted)
     if check_defined_equation(equation_splitted, unknown) == -1 or check_parentheses(equation_splitted) == -1:
         return -1
+    else:
+        equation_splitted = parse_irregular_op(equation_splitted, unknown)
     override = 0
     for x in function_arr:
         if x[0] == fun_name:
