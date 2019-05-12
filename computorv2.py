@@ -187,6 +187,66 @@ def check_defined_equation(equation_splitted, unknown):
     return 0
 
 
+def check_for_matrix(equation_splitted):
+    equation_splitted = ''.join(equation_splitted)
+    equation_splitted = re.split('([\[\],;])', equation_splitted)
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
+    if len(equation_splitted) < 2 or equation_splitted[0] != "[" and equation_splitted[1] != "[":
+        return 0
+    index = 1
+    def_size = -1
+    array_size = 0
+    while index < len(equation_splitted):
+        if equation_splitted[index] == "[":
+            index += 1
+            array_size = 0
+            while index < len(equation_splitted) and equation_splitted[index] != "]":
+                if equation_splitted[index].isdigit():
+                    array_size += 1
+                    index += 1
+                else:
+                    print("Error in the matrix definition, unexpected char")
+                    return -1
+                if index < len(equation_splitted):
+                    if equation_splitted[index] == "]" or equation_splitted[index] == ",":
+                        if equation_splitted[index] == ",":
+                            index += 1
+                    else:
+                        print("Error in the matrix, wrong end or separator")
+                        return -1
+                else:
+                    print("Wrong end of matrix, verify parsing")
+                    return -1
+            if equation_splitted[index] != "]":
+                print("Wrong format for the matrix")
+                return -1
+            if def_size == -1:
+                def_size = array_size
+            if def_size != array_size:
+                print("Matrix of not unilateral size")
+                return -1
+            index += 1
+            if index >= len(equation_splitted) or (equation_splitted[index] != ";" and equation_splitted[index] != "]"):
+                print("Wrong separate character, check format")
+                return -1
+            index += 1
+        else:
+            print("Wrong char at the beginning of a new matrix")
+            return -1
+
+    return 1
+
+
+def define_matrix_value(equation_splitted):
+    equation_splitted = ''.join(equation_splitted)
+    equation_splitted = re.split('([\[\],;])', equation_splitted)
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
+    equation_splitted = equation_splitted[1:len(equation_splitted) - 1]
+    return equation_splitted
+
+
 def split_parentheses(equation_splitted):
     index = 0
     index_dup = 0
@@ -210,8 +270,14 @@ def define_var_res(variable_arr, var_name, equation_splitted):
     equation_splitted = split_parentheses(equation_splitted)
     equation_splitted = filter(None, equation_splitted)
     equation_splitted = filter(str.strip, equation_splitted)
-    if check_defined_equation(equation_splitted, var_name) == -1 or check_parentheses(equation_splitted) == -1:
-        return -1
+    if re.search('[\]\[]', ''.join(equation_splitted)):
+        if check_for_matrix(equation_splitted) != 1:
+            return -1
+        else:
+            equation_splitted = define_matrix_value(equation_splitted)
+    else:
+        if check_defined_equation(equation_splitted, "") == -1 or check_parentheses(equation_splitted) == -1:
+            return -1
     override = 0
     for x in variable_arr:
         if x[0] == var_name:
@@ -227,7 +293,10 @@ def define_var_res(variable_arr, var_name, equation_splitted):
             index += 1
         variable_arr[index][1] = equation_splitted
     for x in equation_splitted:
-        print(x, end=" ")
+        if x == ";":
+            print("")
+        else:
+            print(x, end=" ")
     return 1
 
 
@@ -340,5 +409,3 @@ def exec_computorv2():
         elif ret == 0:
             calcul_resolve(equation_splitted, variable_arr, function_arr)
             print("Calcul")
-        else:
-            print("Error")
