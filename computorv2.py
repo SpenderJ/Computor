@@ -4,6 +4,7 @@ from op import division
 from op import addition
 from op import soustraction
 from op import check_type
+from rpn import rpn
 from math import *
 import re
 import numpy as np
@@ -107,12 +108,13 @@ def parse_irregular_op(equation_splitted, unknown):
     equation_splitted = filter(str.strip, equation_splitted)
     return equation_splitted
 
+
 def apply_rpn(equation_splitted):
     S, L2 = [], []
 
-    table = {"*": 1, "/": 1, "+": 0, "-": 0, "(": -1, ")": -1}
+    table = {"*": 1, "/": 1, "%": 1, "+": 0, "-": 0, "(": -1, ")": -1, "^": 2}
     for i in equation_splitted:
-        if i != "-" and i != "+" and i != "*" and i != "/" and i != "%":
+        if i != "-" and i != "+" and i != "*" and i != "/" and i != "%" and i != "^":
             L2.append(i)
         elif i == "(":
             S.append(i)
@@ -138,7 +140,7 @@ def operate_secundary_operators(equation_splitted):
         while index2 - 1 < len(equation_splitted):
             if check_type(equation_splitted[index], equation_splitted[index2]) == 1:
                 reset = 1
-                dupped = ["" for z in range(equation_splitted.__len__() + 2)]
+                dupped = ["" for z in range(equation_splitted.__len__() + 10)]
                 ind = 0
                 while ind < index:
                     dupped[ind] = equation_splitted[ind]
@@ -284,7 +286,7 @@ def define_matrix_value(equation_splitted):
 def split_parentheses(equation_splitted):
     index = 0
     index_dup = 0
-    dup = ["" for o in range((len(equation_splitted) + 1) * 2)]
+    dup = ["" for o in range((len(equation_splitted) + 30) * 2)]
     while index < len(equation_splitted):
         if re.match('fun[a-zA-Z0-9][a-zA-Z0-9]*\([a-zA-Z0-9][a-zA-Z0-9]*\)', equation_splitted[index]) is None\
                 and (re.search('[(]+', equation_splitted[index]) or re.search('[)]+', equation_splitted[index])):
@@ -333,6 +335,8 @@ def define_var_res(variable_arr, var_name, equation_splitted):
             print("")
         else:
             print(x, end=" ")
+    print("")
+    rpn.rpn(equation_splitted)
     return 1
 
 
@@ -372,7 +376,6 @@ def set_fun_val(equation_splitted, function_arr):
     else:
         print("Error in function definition")
         return 0
-    return 1
 
 
 def set_var_val(equation_splitted, variable_arr):
@@ -383,7 +386,6 @@ def set_var_val(equation_splitted, variable_arr):
     else:
         print("Error in variable definition")
         return 0
-    return 1
 
 
 def calcul_resolve(equation_splitted, variable_arr, function_arr):
@@ -423,7 +425,7 @@ def exec_computorv2():
     variable_arr = []
     function_arr = []
 
-    while (42):
+    while 42:
 
         # Handling leaving for ctrl c + exit
 
@@ -435,6 +437,7 @@ def exec_computorv2():
 
         if input == "exit":
             print(exit_message)
+            exit(0)
 
         #  Now parsing the input
         equation_splitted = re.split('([ %/*=])', input)

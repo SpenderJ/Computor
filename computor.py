@@ -24,6 +24,7 @@ def r_first_degree(equation):
     if equation[1] == "-":
         neg = -1
     if equation[1] != "=":
+
         try:
             float(equation[0])
             num = equation[0]
@@ -749,6 +750,7 @@ def computorv1():
     # Calcul of the polynomial degree of the equation
 
     polynomial_degree = calc_polynomial_degree(equation_splitted)
+
     print("Polynomial degree: " + str(polynomial_degree))
 
     if polynomial_degree >= 3:
