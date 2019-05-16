@@ -290,6 +290,38 @@ def split_parentheses(equation_splitted):
     return dup
 
 
+def define_local_var(local_arr, local_var_name, equation_splitted):
+    equation_splitted = split_parentheses(equation_splitted)
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
+    if re.search('[\]\[]', ''.join(equation_splitted)):
+        if check_for_matrix(equation_splitted) != 1:
+            return -1
+        else:
+            equation_splitted = define_matrix_value(equation_splitted)
+    else:
+        if check_defined_equation(equation_splitted, "") == -1 or check_parentheses(equation_splitted) == -1:
+            return -1
+        else:
+            equation_splitted = parse_irregular_op(equation_splitted, "")
+    override = 0
+    if override == 0:
+        new = []
+        new.append(local_var_name)
+        new.append(equation_splitted)
+        local_arr.append(new)
+    else:
+        index = 0
+        while local_arr[index][0] != local_var_name:
+            index += 1
+        local_arr[index][1] = equation_splitted
+    for x in equation_splitted:
+        if x == ";":
+            print("")
+        else:
+            print(x, end=" ")
+    return 1
+
 def define_var_res(variable_arr, var_name, equation_splitted):
     equation_splitted = split_parentheses(equation_splitted)
     equation_splitted = filter(None, equation_splitted)
@@ -366,10 +398,18 @@ def set_fun_val(equation_splitted, function_arr):
         return 0
 
 
+def set_local_var(equation_splitted, local_arr):
+    if re.match('[a-zA-Z_]([a-zA-Z0-9_]*)', equation_splitted[0])\
+            and len(equation_splitted) > 2 and equation_splitted[1] == "="\
+            and not re.search('[?]', equation_splitted[len(equation_splitted) - 1]):
+        local_var_name = equation_splitted[0]
+        return define_local_var(local_arr, local_var_name, equation_splitted[2:])
+
+
 def set_var_val(equation_splitted, variable_arr):
     if re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', equation_splitted[0])\
             and len(equation_splitted) > 2 and equation_splitted[1] == "="\
-            and not re.search('[?]', equation_splitted[2]):
+            and not re.search('[?]', equation_splitted[len(equation_splitted) - 1]):
         var_name = equation_splitted[0]
         return define_var_res(variable_arr, var_name, equation_splitted[2:])
     else:
@@ -450,7 +490,7 @@ def resolve_var(variable_arr, res_name):
     return res
 
 
-def calcul_resolve(equation_splitted, variable_arr, function_arr):
+def calcul_resolve(equation_splitted, variable_arr, function_arr, local_arr):
     equation = rpn.rpn(equation_splitted)
     ind = 0
     for j in equation:
@@ -470,12 +510,17 @@ def calcul_resolve(equation_splitted, variable_arr, function_arr):
         elif re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', j):
             for x in variable_arr:
                 if x[0] == j:
-                    rpn.rpn((x[1]))
+                    rpn.rpn(x[1])
                     equation[ind] = str(resolve_var(variable_arr, x[0]))
                     verified = 1
             if verified != 1:
                 print("Unknown Variable name used. Please check input, or reference var " + j)
                 return -1
+        elif not is_number(j):
+            for x in local_arr:
+                if x[0] == j:
+                    rpn.rpn(x[1])
+                    equation[ind] = str(resolve_var(local_arr, x[0]))
         ind += 1
     if len(equation) > 2:
         result = resolve_rpn(equation)
@@ -484,6 +529,18 @@ def calcul_resolve(equation_splitted, variable_arr, function_arr):
     print(result)
     return 0
 
+
+def assignation_local(equation_splitted, local_arr):
+    if len(equation_splitted) < 2:
+        return 0
+
+    #  Var assignation parser
+
+    if len(equation_splitted) >= 3 and equation_splitted[0][0].isalpha():
+        return set_local_var(equation_splitted, local_arr)
+    else:
+        print("Unknown local expression declared, check input")
+        return -1
 
 
 def assignation_parse(equation_splitted, variable_arr, function_arr):
@@ -518,6 +575,7 @@ def exec_computorv2():
     exit_message = "Thanks for Using my Computorv2"
     variable_arr = []
     function_arr = []
+    local_arr = []
 
     while 42:
 
@@ -542,4 +600,8 @@ def exec_computorv2():
             print("")
         elif ret == 0 and equation_splitted[len(equation_splitted) -1] == '?'\
                 and equation_splitted[len(equation_splitted) - 2] == '=':
-            calcul_resolve(equation_splitted[:len(equation_splitted) - 2], variable_arr, function_arr)
+            calcul_resolve(equation_splitted[:len(equation_splitted) - 2], variable_arr, function_arr, local_arr)
+        elif len(equation_splitted) > 1 and equation_splitted[len(equation_splitted) - 1] != '?':
+            if assignation_local(equation_splitted, local_arr) == 1:
+                print("")
+
