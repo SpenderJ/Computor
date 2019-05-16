@@ -4,6 +4,7 @@ from op import division
 from op import addition
 from op import soustraction
 from op import check_type
+import operator
 from rpn import rpn
 from math import *
 import re
@@ -102,6 +103,20 @@ def parse_irregular_op(equation_splitted, unknown):
     equation_splitted = L2
     equation_splitted = filter(None, equation_splitted)
     equation_splitted = filter(str.strip, equation_splitted)
+
+    L3 = []
+    for j in equation_splitted:
+        if re.search('[\^]', j):
+            L3.append(j.split('^')[0])
+            L3.append("^")
+            L3.append(j.split('^')[1])
+        else:
+            L3.append(j)
+
+    equation_splitted = L3
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
+
     return equation_splitted
 
 
@@ -361,38 +376,93 @@ def set_var_val(equation_splitted, variable_arr):
         return 0
 
 
+ops = {'+':operator.add,
+       '-':operator.sub,
+       '*':operator.mul,
+       '/':operator.div,
+       '%':operator.mod,
+       '^':operator.pow,}
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass
+
+
 def resolve_rpn(op):
-    return 0
+    stack = []
+    result = 0
+    for i in op:
+        if is_number(i):
+            stack.insert(0,i)
+        else:
+            if len(stack) < 2:
+                print("Error in calcul")
+                break
+            else:
+#                print('stack: %s' % stack)
+                if len(i) == 1:
+                    n1 = float(stack.pop(1))
+                    n2 = float(stack.pop(0))
+                    result = ops[i](n1,n2)
+                    stack.insert(0,str(result))
+                else:
+                    n1 = float(stack.pop(0))
+                    result = ops[i](math.radians(n1))
+                    stack.insert(0,str(result))
+    return result
 
 
 def resolve_fun(unknown, variable_arr, function_arr, value, fun_name):
-    print(unknown)
     res = 0
     for x in function_arr:
         if x[0] == fun_name:
             op = rpn.rpn(x[2])
             index = 0
             while index < len(op):
-                if op[index] == unknown:
+                if op[index] == x[1]:
                     op[index] = value
+                elif re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', op[index]):
+                    op[index] = str(resolve_var(variable_arr, op[index]))
+                elif re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\(([a-zA-Z0-9_]*)\)', op[index]):
+                    op[index] = str(resolve_fun(unknown, variable_arr, function_arr, value, op[index].split('(')[0]))
                 index += 1
             res = resolve_rpn(op)
     return res
 
 
-def resolve_var(equation, variable_arr, function_arr):
-    return 0
+def resolve_var(variable_arr, res_name):
+    res = 0
+    for x in variable_arr:
+        if x[0] == res_name:
+            op = rpn.rpn(x[1])
+            index = 0
+            while index < len(op):
+                if re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', op[index]):
+                    op[index] = str(resolve_var(variable_arr, op[index]))
+                index += 1
+            if len(op) > 2:
+                res = resolve_rpn(op)
+            else:
+                res = int(op[0])
+    return res
 
 
 def calcul_resolve(equation_splitted, variable_arr, function_arr):
     equation = rpn.rpn(equation_splitted)
+    ind = 0
     for j in equation:
         verified = 0
         if re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\(([a-zA-Z0-9_]*)\)', j):
             for x in function_arr:
                 if x[0] == j.split('(')[0]:
                     unknown = j.split('(')[1][:-1]
-                    resolve_fun(x[1], variable_arr, function_arr, unknown, j.split('(')[0])
+                    if not is_number(unknown):
+                        print("Argument passed to function is not an int, please reformat")
+                        return -1
+                    equation[ind] = str(resolve_fun(x[1], variable_arr, function_arr, unknown, j.split('(')[0]))
                     verified = 1
             if verified != 1:
                 print("Unknown Function name used. Please check input, or reference func " + j.split('(')[0])
@@ -401,12 +471,19 @@ def calcul_resolve(equation_splitted, variable_arr, function_arr):
             for x in variable_arr:
                 if x[0] == j:
                     rpn.rpn((x[1]))
-                    resolve_var(x[1], variable_arr, function_arr)
+                    equation[ind] = str(resolve_var(variable_arr, x[0]))
                     verified = 1
             if verified != 1:
                 print("Unknown Variable name used. Please check input, or reference var " + j)
                 return -1
+        ind += 1
+    if len(equation) > 2:
+        result = resolve_rpn(equation)
+    else:
+        result = equation[0]
+    print(result)
     return 0
+
 
 
 def assignation_parse(equation_splitted, variable_arr, function_arr):
@@ -460,7 +537,6 @@ def exec_computorv2():
         equation_splitted = re.split('([ %/*=])', input)
         equation_splitted = filter(None, equation_splitted)
         equation_splitted = filter(str.strip, equation_splitted)
-        ret = 0
         ret = assignation_parse(equation_splitted, variable_arr, function_arr)
         if ret == 1:
             print("")
