@@ -4,6 +4,7 @@ from op import division
 from op import addition
 from op import soustraction
 from op import check_type
+from op import resolve_polynomial
 import operator
 from rpn import rpn
 from math import *
@@ -595,7 +596,9 @@ def exec_computorv2():
         equation_splitted = re.split('([ %/*=])', input)
         equation_splitted = filter(None, equation_splitted)
         equation_splitted = filter(str.strip, equation_splitted)
-        ret = assignation_parse(equation_splitted, variable_arr, function_arr)
+        ret = 0
+        if not '?' in equation_splitted:
+            ret = assignation_parse(equation_splitted, variable_arr, function_arr)
         if ret == 1:
             print("")
         elif ret == 0 and equation_splitted[len(equation_splitted) -1] == '?'\
@@ -604,4 +607,6 @@ def exec_computorv2():
         elif len(equation_splitted) > 1 and equation_splitted[len(equation_splitted) - 1] != '?':
             if assignation_local(equation_splitted, local_arr) == 1:
                 print("")
-
+        elif len(equation_splitted) > 3 and equation_splitted[len(equation_splitted) - 1] == '?'\
+                and equation_splitted[len(equation_splitted) - 2] != '=':
+            resolve_polynomial(equation_splitted[:len(equation_splitted) - 1], variable_arr, function_arr, local_arr)
