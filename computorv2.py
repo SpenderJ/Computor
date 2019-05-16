@@ -85,13 +85,9 @@ def parse_irregular_op(equation_splitted, unknown):
         if x[0] == "-":
             c = 1
         if re.match(expo_4, x) and unknown != "":
-            if c == 1:
-                tr = filter(str.isdigit, x[c:])
-                L2.append('-' + str(tr))
-            else:
-                L2.append(filter(str.isdigit, x))
+            L2.append(x.split(unknown)[0])
             L2.append("*")
-            L2.append(unknown)
+            L2.append(unknown + x.split(unknown)[1])
         elif re.match(expo_5, x):
             if c == 1:
                 tr = filter(str.isdigit, x[c:])
@@ -107,29 +103,6 @@ def parse_irregular_op(equation_splitted, unknown):
     equation_splitted = filter(None, equation_splitted)
     equation_splitted = filter(str.strip, equation_splitted)
     return equation_splitted
-
-
-def apply_rpn(equation_splitted):
-    S, L2 = [], []
-
-    table = {"*": 1, "/": 1, "%": 1, "+": 0, "-": 0, "(": -1, ")": -1, "^": 2}
-    for i in equation_splitted:
-        if i != "-" and i != "+" and i != "*" and i != "/" and i != "%" and i != "^":
-            L2.append(i)
-        elif i == "(":
-            S.append(i)
-        elif i == ")":
-            while S[-1] != "(":
-                L2.append(S.pop())
-            S.pop()
-        else:
-            if len(S) != 0 and (table[S[-1]] >= table[i]):
-                L2.append(S.pop())
-            S.append(i)
-
-    while len(S) != 0:
-        L2.append(S.pop())
-    print(L2)
 
 
 def operate_secundary_operators(equation_splitted):
@@ -207,7 +180,7 @@ def check_defined_equation(equation_splitted, unknown):
                         or re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)\^([0-9-i]*)', x):
                     num = 1
                 else:
-                    print("Error in equation, please check Format")
+                    print("Error in parsing unknown parsed expression")
                     return -1
         elif num == 1 and (x == "+" or x == "-" or x == "*" or x == "/" or x == "%"):
             num = 0
@@ -335,8 +308,6 @@ def define_var_res(variable_arr, var_name, equation_splitted):
             print("")
         else:
             print(x, end=" ")
-    print("")
-    rpn.rpn(equation_splitted)
     return 1
 
 
@@ -355,13 +326,15 @@ def define_fun_res(function_arr, fun_name, unknown, equation_splitted):
     if override == 0:
         new = []
         new.append(fun_name)
+        new.append(unknown)
         new.append(equation_splitted)
         function_arr.append(new)
     else:
         index = 0
         while function_arr[index][0] != fun_name:
             index += 1
-        function_arr[index][1] = equation_splitted
+        function_arr[index][1] = unknown
+        function_arr[index][2] = equation_splitted
     for x in equation_splitted:
         print(x, end=" ")
     return 1
@@ -369,26 +342,70 @@ def define_fun_res(function_arr, fun_name, unknown, equation_splitted):
 
 def set_fun_val(equation_splitted, function_arr):
     if re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\([a-zA-Z_]([a-zA-Z0-9_]*)\)', equation_splitted[0])\
-            and len(equation_splitted) > 2 and equation_splitted[1] == "=":
+            and len(equation_splitted) > 2 and equation_splitted[1] == "="\
+            and not re.search('[?]', equation_splitted[2]):
         fun_name = equation_splitted[0].split('(')[0]
         unknown = equation_splitted[0].split('(')[1][:-1]
         return define_fun_res(function_arr, fun_name, unknown, equation_splitted[2:])
     else:
-        print("Error in function definition")
         return 0
 
 
 def set_var_val(equation_splitted, variable_arr):
     if re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', equation_splitted[0])\
-            and len(equation_splitted) > 2 and equation_splitted[1] == "=":
+            and len(equation_splitted) > 2 and equation_splitted[1] == "="\
+            and not re.search('[?]', equation_splitted[2]):
         var_name = equation_splitted[0]
         return define_var_res(variable_arr, var_name, equation_splitted[2:])
     else:
-        print("Error in variable definition")
         return 0
 
 
+def resolve_rpn(op):
+    return 0
+
+
+def resolve_fun(unknown, variable_arr, function_arr, value, fun_name):
+    print(unknown)
+    res = 0
+    for x in function_arr:
+        if x[0] == fun_name:
+            op = rpn.rpn(x[2])
+            index = 0
+            while index < len(op):
+                if op[index] == unknown:
+                    op[index] = value
+                index += 1
+            res = resolve_rpn(op)
+    return res
+
+
+def resolve_var(equation, variable_arr, function_arr):
+    return 0
+
+
 def calcul_resolve(equation_splitted, variable_arr, function_arr):
+    equation = rpn.rpn(equation_splitted)
+    for j in equation:
+        verified = 0
+        if re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\(([a-zA-Z0-9_]*)\)', j):
+            for x in function_arr:
+                if x[0] == j.split('(')[0]:
+                    unknown = j.split('(')[1][:-1]
+                    resolve_fun(x[1], variable_arr, function_arr, unknown, j.split('(')[0])
+                    verified = 1
+            if verified != 1:
+                print("Unknown Function name used. Please check input, or reference func " + j.split('(')[0])
+                return -1
+        elif re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', j):
+            for x in variable_arr:
+                if x[0] == j:
+                    rpn.rpn((x[1]))
+                    resolve_var(x[1], variable_arr, function_arr)
+                    verified = 1
+            if verified != 1:
+                print("Unknown Variable name used. Please check input, or reference var " + j)
+                return -1
     return 0
 
 
@@ -443,10 +460,10 @@ def exec_computorv2():
         equation_splitted = re.split('([ %/*=])', input)
         equation_splitted = filter(None, equation_splitted)
         equation_splitted = filter(str.strip, equation_splitted)
-
+        ret = 0
         ret = assignation_parse(equation_splitted, variable_arr, function_arr)
         if ret == 1:
-            print("\nAssignation Done")
-        elif ret == 0:
-            calcul_resolve(equation_splitted, variable_arr, function_arr)
-            print("Calcul")
+            print("")
+        elif ret == 0 and equation_splitted[len(equation_splitted) -1] == '?'\
+                and equation_splitted[len(equation_splitted) - 2] == '=':
+            calcul_resolve(equation_splitted[:len(equation_splitted) - 2], variable_arr, function_arr)
