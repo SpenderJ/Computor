@@ -544,6 +544,128 @@ def multiplication(equation, index):
 
     return dup
 
+
+def resolve_imaginary(equation_splitted, variable_arr, function_arr, local_arr):
+    equation = []
+    res = 0
+
+    for x in equation_splitted:
+        if res == 0:
+            equation.append(x)
+
+
+    #  Im rly sorry for this code, will redo it cleanly later
+    #  Making the equation parsing clean
+
+    L2 = []
+    for j in equation:
+        verified = 0
+        if re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\(([a-zA-Z0-9_]*)\)', j):
+            for x in function_arr:
+                if x[0] == j.split('(')[0]:
+                    L2.append(x[2])
+                    verified = 1
+            if verified == 0:
+                print("Error in imaginary solver, unknown function")
+                return -1
+        elif re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', j):
+            for x in variable_arr:
+                if x[0] == j:
+                    L2.append(x[1])
+                    verified = 1
+            if verified == 0:
+                print("Error in imaginary solver, unknown variable")
+                return -1
+        elif not is_number(j) and not j in ops and j != 'i':
+            for x in local_arr:
+                if x[0] == j:
+                    L2.append(x[1])
+                    verified = 1
+            if verified == 0:
+                print("Error in imaginary solver, unknown local variable")
+                return -1
+        else:
+            L2.append(j)
+
+    final_eq = []
+    for x in L2:
+        if len(x) >= 1:
+            for j in x:
+                final_eq.append(j)
+        else:
+            final_eq.append(x)
+    equation = final_eq
+
+    if len(equation) > 1:
+        equation = ''.join(equation)
+    else:
+        equation = equation[0]
+    equation = re.split('([ /*+-i])', equation)
+    equation = filter(None, equation)
+    equation = filter(str.strip, equation)
+
+
+    #  Now that we done, let's do the exact same thing again, that's terrible but im too lazy to split
+    #  HERE ARRIVE
+
+    result = "".join(equation)
+    result = re.split('([ /*+-i])', result)
+    result = filter(None, result)
+    result = filter(str.strip, result)
+
+    equation_splitted = result
+
+    # Now time to effectuate our plynomial on this
+
+    num = 0
+    equal = 0
+
+    while check_prio_op(equation_splitted) != 1:
+        index = 0
+        while equation_splitted[index] != "*" and equation_splitted[index] != "/":
+            index += 1
+        if equation_splitted[index] == "*":
+            equation_splitted = multiplication(equation_splitted, index)
+        elif equation_splitted[index] == "/":
+            equation_splitted = division(equation_splitted, index)
+        else:
+            print("Unknown error, please report the bug")
+            exit(0)
+
+
+    index = 0
+    reset = 0
+    while index < len(equation_splitted) - 1:
+        index2 = index + 2
+        while index2 < len(equation_splitted) - 2:
+            if check_type(equation_splitted[index], equation_splitted[index2]) == 1:
+                reset = 1
+                dupped = ["" for z in range(equation_splitted.__len__() + 2)]
+                ind = 0
+                while ind < index:
+                    dupped[ind] = equation_splitted[ind]
+                    ind += 1
+                if equation_splitted[index2 - 1] == "+":
+                    equation_splitted = addition(equation_splitted, index, index2)
+                elif equation_splitted[index2 - 1] == "-":
+                    equation_splitted = soustraction(equation_splitted, index, index2)
+                else:
+                    print("Unknown bug, please report it")
+                    exit(0)
+            else:
+                index2 += 2
+        if reset == 1:
+            reset = 0
+            index = 0
+        else:
+            index += 2
+
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
+    equation_splitted = "".join(equation_splitted)
+    return equation_splitted
+
+
 def resolve_polynomial(equation_splitted, variable_arr, function_arr, local_arr):
     equation = []
     result = []
@@ -823,7 +945,6 @@ def resolve_polynomial(equation_splitted, variable_arr, function_arr, local_arr)
 
     if polynomial_degree >= 3:
         print("The polynomial degree is stricly greater than 2, I can't solve.")
-        exit(0)
     elif polynomial_degree == 2:
         r_second_degree(equation_splitted)
     elif polynomial_degree == 1:
