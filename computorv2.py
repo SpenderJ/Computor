@@ -653,6 +653,7 @@ def detect_type(equation, variable_arr, function_arr, local_arr):
                 return -1
         elif not is_number(j) and j != '+' and j != '/' and j != '-' and j != '*' and j != '%' and j != '^':
             for x in local_arr:
+                if x[0] == j:
                     tmp = detect_var(local_arr, x[0])
                     if tmp == -1:
                         return -1
@@ -676,6 +677,79 @@ def detect_type(equation, variable_arr, function_arr, local_arr):
     return 0
 
 
+def flatten(iterable):
+    returned = []
+    for sublist in iterable:
+        if isinstance(sublist, basestring):
+            returned.append(sublist)
+        else:
+            for item in sublist:
+                returned.append(item)
+    return returned
+
+
+def resolve_matrix(equation, variable_arr, local_arr, function_arr):
+    error = 1
+    L2 = []
+
+    for j in equation:
+        if re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\(([a-zA-Z0-9_]*)\)', j):
+            for x in function_arr:
+                if x[0] == j.split('(')[0]:
+                    unknown = j.split('(')[1][:-1]
+                    if not is_number(unknown) and not any(m[0] == unknown for m in local_arr) and not any(n[0] == unknown for n in variable_arr):
+                        print("Argument passed to function is not an int, please reformat")
+                        return -1
+                    if not is_number(unknown):
+                        if unknown[:3] == 'var':
+                            unknown = resolve_var(variable_arr, unknown)
+                        else:
+                            unknown = resolve_var(local_arr, unknown)
+                    L2.append(x[2])
+        else:
+            L2.append(j)
+    equation = L2
+    equation = filter(None, equation)
+    equation = flatten(equation)
+
+    error = 1
+    while error != 0:
+        error = 0
+        L3 = []
+        for j in equation:
+            if re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', j):
+                for x in variable_arr:
+                    if x[0] == j:
+                        L3.append(x[1])
+                        error = 1
+            elif not is_number(j) and j != '+' and j != '/' and j != '-' and j != '*' and j != '%' and j != '^'\
+                    and '[' not in j and ']' not in j:
+                for x in local_arr:
+                    if x[0] == j:
+                        L3.append(x[1])
+                        error = 1
+            else:
+                L3.append(j)
+        equation = L3
+        equation = filter(None, equation)
+        equation = flatten(equation)
+
+    if len(equation) != 3:
+        print(equation)
+        return 1
+    if '[' not in equation[0] or '[' not in equation[2]:
+        print(equation)
+        return 1
+
+    #  WE ARE AT THE POINT WHERE WE WANNA RESOLVE A MATRIX FACTORIAL
+
+    if equation[1] != '*':
+        print("Unfortunately resolving any operation ecept multiplication between matrix is not madatory")
+        print(equation)
+        return 1
+    return 1
+
+
 def calcul_resolve(equation_splitted, variable_arr, function_arr, local_arr):
     parse = detect_type(equation_splitted, variable_arr, function_arr, local_arr)
     if parse == -1:
@@ -684,7 +758,7 @@ def calcul_resolve(equation_splitted, variable_arr, function_arr, local_arr):
         resolve_imaginary(equation_splitted, variable_arr, function_arr, local_arr)
         return 1
     if parse == 2:
-        print("Matrix detected")
+        resolve_matrix(equation_splitted, variable_arr, local_arr, function_arr)
         return 1
     equation = rpn.rpn(equation_splitted)
     ind = 0
@@ -697,8 +771,8 @@ def calcul_resolve(equation_splitted, variable_arr, function_arr, local_arr):
             for x in function_arr:
                 if x[0] == j.split('(')[0]:
                     unknown = j.split('(')[1][:-1]
-                    if not is_number(unknown) and any(m == j[0] for m in local_arr)\
-                            and any(n == j[0] for n in variable_arr):
+                    if not is_number(unknown) and any(m == unknown for m in local_arr)\
+                            and any(n == unknown for n in variable_arr):
                         print("Argument passed to function is not an int, please reformat")
                         return -1
                     if not is_number(unknown):
