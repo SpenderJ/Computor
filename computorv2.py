@@ -458,6 +458,9 @@ def resolve_rpn(op):
                 if len(i) == 1:
                     n1 = float(stack.pop(1))
                     n2 = float(stack.pop(0))
+                    if (ops[i] == '/' or ops[i] == '%') and n2 == 0:
+                        print("Error in the resolution, can't divise by 0")
+                        break
                     result = ops[i](n1,n2)
                     stack.insert(0,str(result))
                 else:
@@ -516,12 +519,176 @@ def resolve_var(variable_arr, res_name):
     return res
 
 
+def detect_fun(unknown, variable_arr, function_arr, value, fun_name):
+    res = 0
+    imaginary = 0
+    matrix = 0
+    for x in function_arr:
+        if x[0] == fun_name:
+            op = x[2]
+            index = 0
+            for j in x[2]:
+                if j == '[':
+                    matrix = 2  # 2 == MATRIX
+                if j == 'i':
+                    imaginary = 1  # 1 == IMAGINARY
+            while index < len(op):
+                if op[index] == x[1]:
+                    op[index] = value
+                elif re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', op[index]):
+                    if detect_var(variable_arr, op[index]) != 0:
+                        tmp = detect_var(variable_arr, op[index])
+                        if tmp == -1:
+                            return -1
+                        elif tmp == 1:
+                            imaginary = 1
+                        elif tmp == 2:
+                            matrix = 2
+                elif re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\(([a-zA-Z0-9_]*)\)', op[index]):
+                    if resolve_fun(unknown, variable_arr, function_arr, value, op[index].split('(')[0]):
+                        tmp = detect_var(variable_arr, op[index])
+                        if tmp == -1:
+                            return -1
+                        elif tmp == 1:
+                            imaginary = 1
+                        elif tmp == 2:
+                            matrix = 2
+                index += 1
+
+    if imaginary and matrix:
+        print("Error an expression can't combine matrix and imaginary numbers")
+        return -1
+    elif imaginary:
+        return 1
+    elif matrix:
+        return 2
+    return 0
+
+
+def detect_var(variable_arr, res_name):
+    res = 0
+    imaginary = 0
+    matrix = 0
+    for x in variable_arr:
+        if x[0] == res_name:
+            op = x[1]
+            for j in x[1]:
+                if j == '[':
+                    matrix = 2  # 2 == MATRIX
+                if j == 'i':
+                    imaginary = 1  # 1 == IMAGINARY
+            index = 0
+            while index < len(op):
+                if re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', op[index]) \
+                        or (re.match('[a-zA-Z_]([a-zA-Z0-9_]*)', op[index]) and op[index] != 'i'):
+                    if str(detect_var(variable_arr, op[index])) != 0:
+                        tmp = detect_var(variable_arr, op[index])
+                        if tmp == -1:
+                            return -1
+                        elif tmp == 1:
+                            imaginary = 1
+                        elif tmp == 2:
+                            matrix = 2
+                index += 1
+
+    if imaginary and matrix:
+        print("Error an expression can't combine matrix and imaginary numbers")
+        return -1
+    elif imaginary:
+        return 1
+    elif matrix:
+        return 2
+    return 0
+
+
+def detect_type(equation, variable_arr, function_arr, local_arr):
+    imaginary = 0
+    matrix = 0
+    ind = 0
+    for j in equation:
+        if j == 'i':
+            imaginary = 1
+        elif re.match('fun[a-zA-Z_]([a-zA-Z0-9_]*)\(([a-zA-Z0-9_]*)\)', j):
+            for x in function_arr:
+                if x[0] == j.split('(')[0]:
+                    unknown = j.split('(')[1][:-1]
+                    if not is_number(unknown) and any(m == j[0] for m in local_arr) \
+                            and any(n == j[0] for n in variable_arr):
+                        print("Argument passed to function is not an int, please reformat")
+                        return -1
+                    if not is_number(unknown):
+                        if detect_var(variable_arr, unknown):
+                            tmp = detect_var(variable_arr, unknown)
+                            if tmp == -1:
+                                return -1
+                            elif tmp == 1:
+                                imaginary = 1
+                            elif tmp == 2:
+                                matrix = 2
+                    if detect_fun(x[1], variable_arr, function_arr, unknown, j.split('(')[0]):
+                        tmp = detect_fun(x[1], variable_arr, function_arr, unknown, j.split('(')[0])
+                        if tmp == -1:
+                            return -1
+                        elif tmp == 1:
+                            imaginary = 1
+                        elif tmp == 2:
+                            matrix = 2
+                    verified = 1
+            if verified != 1:
+                print("Unknown Function name used. Please check input, or reference func " + j.split('(')[0])
+                return -1
+        elif re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', j):
+            for x in variable_arr:
+                if x[0] == j:
+                    tmp = detect_var(variable_arr, x[0])
+                    if tmp == -1:
+                        return -1
+                    elif tmp == 1:
+                        imaginary = 1
+                    elif tmp == 2:
+                        matrix = 2
+                    verified = 1
+            if verified != 1:
+                print("Unknown Variable name used. Please check input, or reference var " + j)
+                return -1
+        elif not is_number(j) and j != '+' and j != '/' and j != '-' and j != '*' and j != '%' and j != '^':
+            for x in local_arr:
+                    tmp = detect_var(local_arr, x[0])
+                    if tmp == -1:
+                        return -1
+                    elif tmp == 1:
+                        imaginary = 1
+                    elif tmp == 2:
+                        matrix = 2
+                    verified = 1
+            if verified != 1:
+                print("Unknown Local var name used. Please check input, or reference func ")
+                return -1
+        ind += 1
+
+    if imaginary and matrix:
+        print("Error an expression can't combine matrix and imaginary numbers")
+        return -1
+    elif imaginary:
+        return 1
+    elif matrix:
+        return 2
+    return 0
+
+
 def calcul_resolve(equation_splitted, variable_arr, function_arr, local_arr):
-    if any(p == 'i' for p in equation_splitted):
-        print(resolve_imaginary(variable_arr, function_arr, local_arr))
+    parse = detect_type(equation_splitted, variable_arr, function_arr, local_arr)
+    if parse == -1:
+        return -1
+    if parse == 1:
+        resolve_imaginary(equation_splitted, variable_arr, function_arr, local_arr)
+        return 1
+    if parse == 2:
+        print("Matrix detected")
         return 1
     equation = rpn.rpn(equation_splitted)
     ind = 0
+    imaginary = 0
     for j in equation:
         verified = 0
         if j == 'i':

@@ -596,21 +596,14 @@ def resolve_imaginary(equation_splitted, variable_arr, function_arr, local_arr):
             final_eq.append(x)
     equation = final_eq
 
-    if len(equation) > 1:
-        equation = ''.join(equation)
-    else:
-        equation = equation[0]
-    equation = re.split('([ /*+-i])', equation)
-    equation = filter(None, equation)
+    equation = filter(None, final_eq)
     equation = filter(str.strip, equation)
 
 
     #  Now that we done, let's do the exact same thing again, that's terrible but im too lazy to split
     #  HERE ARRIVE
 
-    result = "".join(equation)
-    result = re.split('([ /*+-i])', result)
-    result = filter(None, result)
+    result = filter(None, final_eq)
     result = filter(str.strip, result)
 
     equation_splitted = result
@@ -635,6 +628,8 @@ def resolve_imaginary(equation_splitted, variable_arr, function_arr, local_arr):
 
     index = 0
     reset = 0
+    equation_splitted = filter(None, equation_splitted)
+    equation_splitted = filter(str.strip, equation_splitted)
     while index < len(equation_splitted) - 1:
         index2 = index + 2
         while index2 < len(equation_splitted) - 2:
@@ -662,7 +657,8 @@ def resolve_imaginary(equation_splitted, variable_arr, function_arr, local_arr):
 
     equation_splitted = filter(None, equation_splitted)
     equation_splitted = filter(str.strip, equation_splitted)
-    equation_splitted = "".join(equation_splitted)
+    equation_splitted = " ".join(equation_splitted)
+    print(equation_splitted)
     return equation_splitted
 
 
