@@ -6,6 +6,7 @@ from op import soustraction
 from op import check_type
 from op import resolve_polynomial
 from op import resolve_imaginary
+from op import multiplication_matrix
 import operator
 from rpn import rpn
 from math import *
@@ -734,19 +735,88 @@ def resolve_matrix(equation, variable_arr, local_arr, function_arr):
         equation = filter(None, equation)
         equation = flatten(equation)
 
-    if len(equation) != 3:
-        print(equation)
-        return 1
-    if '[' not in equation[0] or '[' not in equation[2]:
-        print(equation)
-        return 1
+    # Time to correctly join the matrix together
+
+    L4 = []
+    open = 0
+    index = 0
+    while index < len(equation):
+        if equation[index] == '[':
+            grouped = ""
+            while index < len(equation) and (is_number(equation[index]) or equation[index] == ']'\
+                                             or equation[index] == '['):
+                if grouped != "":
+                    grouped = grouped + " " + equation[index]
+                else:
+                    grouped = equation[index]
+                index += 1
+            L4.append(grouped)
+        else:
+            L4.append(equation[index])
+            index += 1
+    equation = L4
+
+    # Launching the op on the equation
+
+    while check_prio_op(equation) != 1:
+        index = 0
+        while equation[index] != "*" and equation[index] != "/":
+            index += 1
+        if equation[index] == "*":
+            equation = multiplication_matrix(equation, index)
+            if equation == -1:
+                return -1
+        elif equation[index] == "/":
+            print("Cant operate division on matrix, please check input")
+            return -1
+        else:
+            print("Unknown error, please report the bug")
+            exit(0)
+
+
+    index = 0
+    reset = 0
+
+    while index < len(equation) - 1:
+        index2 = index + 2
+        while index2 < len(equation) - 2:
+            if check_type(equation[index], equation[index2]) == 1:
+                reset = 1
+                dupped = ["" for z in range(equation.__len__() + 2)]
+                ind = 0
+                while ind < index:
+                    dupped[ind] = equation[ind]
+                    ind += 1
+                if equation[index2 - 1] == "+":
+                    equation = addition(equation, index, index2)
+                elif equation[index2 - 1] == "-":
+                    equation = soustraction(equation, index, index2)
+                else:
+                    print("Unknown bug, please report it")
+                    exit(0)
+            else:
+                index2 += 2
+        if reset == 1:
+            reset = 0
+            index = 0
+        else:
+            index += 2
+
+    equation = filter(None, equation)
+    equation = filter(str.strip, equation)
+    equation = " ".join(equation)
+    # In case we are lazy
+
+    # if len(equation) != 3:
+    #     print(equation)
+    #     return 1
+    # if '[' not in equation[0] or '[' not in equation[2]:
+    #     print(equation)
+    #     return 1
 
     #  WE ARE AT THE POINT WHERE WE WANNA RESOLVE A MATRIX FACTORIAL
 
-    if equation[1] != '*':
-        print("Unfortunately resolving any operation ecept multiplication between matrix is not madatory")
-        print(equation)
-        return 1
+    print(equation)
     return 1
 
 

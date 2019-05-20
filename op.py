@@ -950,3 +950,92 @@ def resolve_polynomial(equation_splitted, variable_arr, function_arr, local_arr)
     else:
         print("Unexpected error, please report the bug")
         exit(0)
+
+
+def multiplication_matrix(equation, index):
+    i = 0
+    m1 = 0
+    m2 = 0
+    res = ""
+
+    # Parsing first num of the equation
+    num1 = equation[index - 1]
+    if num1[0] == '[':
+        m1 = 1
+
+    # Parsing Second num of the equation
+    num2 = equation[index + 1]
+    if num2[0] == '[':
+        m2 = 1
+
+    if m1 == 0 and m2 == 0:
+        res = str(int(num1) * int(num2))
+    elif m1 == 1 and m2 == 0:
+        L2 = num1.split(' ')
+        LR = []
+        for x in L2:
+            if is_number(x):
+                LR.append(int(num2) * int(x))
+            else:
+                LR.append(x)
+        for x in LR:
+            if res != "":
+                res = res + " " + str(x)
+            else:
+                res = str(x)
+    elif m1 == 0 and m2 == 1:
+        L1 = num2.split(' ')
+        LR = []
+        for x in L1:
+            if is_number(x):
+                LR.append(int(num1) * int(x))
+            else:
+                LR.append(x)
+        for x in LR:
+            if res != "":
+                res = res + " " + str(x)
+            else:
+                res = str(x)
+    else:
+        LR = []
+        L1 = re.split(num1)
+        sizel1 = 0
+        colL1 = 0
+        i = 0
+        while i < len(L1):
+            if L1[i] == ']':
+                colL1 += 1
+            i += 1
+        while L1[sizel1] != ']':
+            sizel1 += 1
+        sizel1 -= 1
+
+        sizel2 = 0
+        colL2 = 0
+        L2 = re.split(num2)
+        i = 0
+        while i < len(L2):
+            if L2[i] == ']':
+                colL2 += 1
+            i += 1
+        while L2[sizel2] != ']':
+            sizel2 += 1
+        sizel2 -= 1
+
+        if colL1 != colL2:
+            print("Trying to multiply matrix of not the same size, please verify input")
+            return -1
+
+        return ""
+
+    i = 0
+    dup = []
+    while i < index - 1:
+        dup.append(equation[i])
+        i += 1
+    dup.append(res)
+    i += 3
+    while i < len(equation):
+        dup.append(equation[i])
+        i += 1
+    return dup
