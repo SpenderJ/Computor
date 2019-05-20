@@ -8,6 +8,7 @@ from op import resolve_polynomial
 from op import resolve_imaginary
 from op import multiplication_matrix
 import operator
+import copy
 from rpn import rpn
 from math import *
 import re
@@ -476,7 +477,7 @@ def resolve_fun(unknown, variable_arr, function_arr, value, fun_name):
     imaginary = 0
     for x in function_arr:
         if x[0] == fun_name:
-            dup = x
+            dup = copy.copy(x)
             op = rpn.rpn(dup[2])
             index = 0
             while index < len(op):
@@ -502,7 +503,7 @@ def resolve_var(variable_arr, res_name):
     imaginary = 0
     for x in variable_arr:
         if x[0] == res_name:
-            dup = x[1]
+            dup = copy.copy(x[1])
             op = rpn.rpn(dup)
             index = 0
             while index < len(op):
@@ -528,7 +529,7 @@ def detect_fun(unknown, variable_arr, function_arr, value, fun_name):
     matrix = 0
     for x in function_arr:
         if x[0] == fun_name:
-            dup = x
+            dup = copy.copy(x)
             op = dup[2]
             index = 0
             for j in dup[2]:
@@ -575,7 +576,7 @@ def detect_var(variable_arr, res_name):
     matrix = 0
     for x in variable_arr:
         if x[0] == res_name:
-            dup = x
+            dup = copy.copy(x)
             op = dup[1]
             for j in dup[1]:
                 if j == '[':
@@ -817,14 +818,17 @@ def resolve_matrix(equation, variable_arr, local_arr, function_arr):
 
 
 def calcul_resolve(equation_splitted, variable_arr, function_arr, local_arr):
-    parse = detect_type(equation_splitted, variable_arr, function_arr, local_arr)
+    f_arr = copy.deepcopy(function_arr)
+    l_arr = copy.deepcopy(local_arr)
+    v_arr = copy.deepcopy(variable_arr)
+    parse = detect_type(equation_splitted, v_arr, f_arr, l_arr)
     if parse == -1:
         return -1
     if parse == 1:
-        resolve_imaginary(equation_splitted, variable_arr, function_arr, local_arr)
+        resolve_imaginary(equation_splitted, v_arr, f_arr, l_arr)
         return 1
     if parse == 2:
-        resolve_matrix(equation_splitted, variable_arr, local_arr, function_arr)
+        resolve_matrix(equation_splitted, v_arr, l_arr, f_arr)
         return 1
     equation = rpn.rpn(equation_splitted)
     ind = 0
@@ -837,34 +841,34 @@ def calcul_resolve(equation_splitted, variable_arr, function_arr, local_arr):
             for x in function_arr:
                 if x[0] == j.split('(')[0]:
                     unknown = j.split('(')[1][:-1]
-                    if not is_number(unknown) and any(m == unknown for m in local_arr)\
-                            and any(n == unknown for n in variable_arr):
+                    if not is_number(unknown) and any(m == unknown for m in l_arr)\
+                            and any(n == unknown for n in v_arr):
                         print("Argument passed to function is not an int, please reformat")
                         return -1
                     if not is_number(unknown):
                         if unknown[:3] == 'var':
-                            unknown = resolve_var(variable_arr, unknown)
+                            unknown = resolve_var(v_arr, unknown)
                         else:
-                            unknown = resolve_var(local_arr, unknown)
-                    equation[ind] = str(resolve_fun(x[1], variable_arr, function_arr, unknown, j.split('(')[0]))
+                            unknown = resolve_var(l_arr, unknown)
+                    equation[ind] = str(resolve_fun(x[1], v_arr, f_arr, unknown, j.split('(')[0]))
                     verified = 1
             if verified != 1:
                 print("Unknown Function name used. Please check input, or reference func " + j.split('(')[0])
                 return -1
         elif re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', j):
-            for x in variable_arr:
+            for x in v_arr:
                 if x[0] == j:
                     rpn.rpn(x[1])
-                    equation[ind] = str(resolve_var(variable_arr, x[0]))
+                    equation[ind] = str(resolve_var(v_arr, x[0]))
                     verified = 1
             if verified != 1:
                 print("Unknown Variable name used. Please check input, or reference var " + j)
                 return -1
         elif not is_number(j) and j != '+' and j != '/' and j != '-' and j != '*' and j != '%' and j != '^':
-            for x in local_arr:
+            for x in l_arr:
                 if x[0] == j:
                     rpn.rpn(x[1])
-                    equation[ind] = str(resolve_var(local_arr, x[0]))
+                    equation[ind] = str(resolve_var(l_arr, x[0]))
                     verified = 1
             if verified != 1:
                 print("Unknown Local var name used. Please check input, or reference func ")
