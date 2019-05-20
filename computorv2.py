@@ -838,6 +838,9 @@ def calcul_resolve(equation_splitted, variable_arr, function_arr, local_arr):
     ind = 0
     imaginary = 0
     for j in equation:
+        f_arr = copy.deepcopy(function_arr)
+        l_arr = copy.deepcopy(local_arr)
+        v_arr = copy.deepcopy(variable_arr)
         verified = 0
         if j == 'i':
             imaginary = 1

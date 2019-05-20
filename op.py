@@ -1040,7 +1040,7 @@ def multiplication_matrix(equation, index):
         if colL1 != colL2:
             print("Trying to multiply matrix of not the same size, please verify input")
             return -1
-        if colL1 == 1 or colL2 == 2:
+        if colL1 == 1 or colL2 == 1:
             print("Can't make the product of matrix with 1 dimension")
             return -1
         i1 = 0
@@ -1059,7 +1059,7 @@ def multiplication_matrix(equation, index):
                 dec = 0
                 for x in facto:
                     sum = sum + int(x) * int(L2[i2 + dec])
-                    dec += colL2 + 2
+                    dec += sizel2 + 2
                 LR.append(str(sum))
                 i2 += 1
                 rep -=1
