@@ -153,7 +153,7 @@ def r_second_degree(equation):
 
 
 def calc_polynomial_degree(equation):
-    maxdegree = 0
+    maxdegree = -2
     index = 0
     while index < equation.__len__() and equation[index] != "":
         num1 = equation[index]
@@ -163,6 +163,8 @@ def calc_polynomial_degree(equation):
             deg1 = 1
         if len(str1) > 1 and len(str1[1]) > 0:
             deg1 = int(str1[1][1:])
+        if deg1 < 0:
+            return -1
         if deg1 > maxdegree:
             maxdegree = deg1
         index += 1
@@ -406,7 +408,7 @@ def division(equation, index):
         k = 0
         for j in num1:
             if j.isalpha() and quit != 1:
-                p = num1[k:].find('^')
+                p = num1.find('^')
                 if p == -1:
                     p = len(num1)
                 charx = num1[k:p]
@@ -417,7 +419,7 @@ def division(equation, index):
         x2 = 1 * deg2
         for j in num2:
             if j.isalpha() and quit != 1:
-                p = num2[k:].find('^')
+                p = num2.find('^')
                 if p == -1:
                     p = len(num2)
                 charx = num2[k:p]
@@ -451,7 +453,9 @@ def division(equation, index):
         dup[i] = str(float(totalres)) + charx + "^" + str(x)
     ind = i + 1
     i += 3
-    while i < equation.__len__():
+    equation = filter(None, equation)
+    equation = filter(str.strip, equation)
+    while i < len(equation):
         dup[ind] = equation[i]
         i += 1
         ind += 1
@@ -495,7 +499,7 @@ def multiplication(equation, index):
         k = 0
         for j in num1:
             if j.isalpha() and quit != 1:
-                p = num1[k:].find('^')
+                p = num1.find('^')
                 if p == -1:
                     p = len(num1)
                 charx = num1[k:p]
@@ -506,7 +510,7 @@ def multiplication(equation, index):
         x2 = 1 * deg2
         for j in num2:
             if j.isalpha() and quit != 1:
-                p = num2[k:].find('^')
+                p = num2.find('^')
                 if p == -1:
                     p = len(num2)
                 charx = num2[k:p]
@@ -792,17 +796,29 @@ def resolve_polynomial(equation_splitted, variable_arr, function_arr, local_arr)
     num = 0
     equal = 0
 
-    while check_prio_op(equation_splitted) != 1:
+    while '*' in equation_splitted:
         index = 0
-        while equation_splitted[index] != "*" and equation_splitted[index] != "/":
+        while equation_splitted[index] != "*":
             index += 1
         if equation_splitted[index] == "*":
             equation_splitted = multiplication(equation_splitted, index)
-        elif equation_splitted[index] == "/":
+        else:
+            print("Unknown error, please report the bug")
+            exit(0)
+        equation_splitted = filter(None, equation_splitted)
+        equation_splitted = filter(str.strip, equation_splitted)
+
+    while '/' in equation_splitted:
+        index = 0
+        while equation_splitted[index] != "/":
+            index += 1
+        if equation_splitted[index] == "/":
             equation_splitted = division(equation_splitted, index)
         else:
             print("Unknown error, please report the bug")
             exit(0)
+        equation_splitted = filter(None, equation_splitted)
+        equation_splitted = filter(str.strip, equation_splitted)
 
 
     dupi = 0
@@ -948,8 +964,7 @@ def resolve_polynomial(equation_splitted, variable_arr, function_arr, local_arr)
     elif polynomial_degree == 0:
         r_zero_degree(equation_splitted)
     else:
-        print("Unexpected error, please report the bug")
-        exit(0)
+        print("Can't calculate with negative polynomial")
 
 
 def multiplication_matrix(equation, index):

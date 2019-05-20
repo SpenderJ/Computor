@@ -501,6 +501,7 @@ def resolve_fun(unknown, variable_arr, function_arr, value, fun_name):
 def resolve_var(variable_arr, res_name):
     res = 0
     imaginary = 0
+    op = []
     for x in variable_arr:
         if x[0] == res_name:
             dup = copy.copy(x[1])
@@ -518,6 +519,9 @@ def resolve_var(variable_arr, res_name):
             else:
                 res = resolve_imaginary(dup, variable_arr, [], [])
 
+    if len(op) <= 0:
+        print("Unknown variable, program will exit")
+        exit(0)
     if len(op) == 1:
         return int(op[0])
     return res
