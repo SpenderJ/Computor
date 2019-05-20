@@ -460,7 +460,7 @@ def resolve_rpn(op):
                 if len(i) == 1:
                     n1 = float(stack.pop(1))
                     n2 = float(stack.pop(0))
-                    if (ops[i] == '/' or ops[i] == '%') and n2 == 0:
+                    if (i == '/' or i == '%') and n2 == 0:
                         print("Error in the resolution, can't divise by 0")
                         break
                     result = ops[i](n1,n2)
