@@ -476,10 +476,11 @@ def resolve_fun(unknown, variable_arr, function_arr, value, fun_name):
     imaginary = 0
     for x in function_arr:
         if x[0] == fun_name:
-            op = rpn.rpn(x[2])
+            dup = x
+            op = rpn.rpn(dup[2])
             index = 0
             while index < len(op):
-                if op[index] == x[1]:
+                if op[index] == dup[1]:
                     op[index] = value
                 elif re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', op[index]):
                     op[index] = str(resolve_var(variable_arr, op[index]))
@@ -487,12 +488,12 @@ def resolve_fun(unknown, variable_arr, function_arr, value, fun_name):
                     op[index] = str(resolve_fun(unknown, variable_arr, function_arr, value, op[index].split('(')[0]))
                 index += 1
 
-            if any(j == 'i' for j in x[1]):
+            if any(j == 'i' for j in dup[1]):
                 imaginary = 1
             if imaginary == 0:
                 res = resolve_rpn(op)
             else:
-                res = resolve_imaginary(x[1], variable_arr, function_arr, [])
+                res = resolve_imaginary(dup[1], variable_arr, function_arr, [])
     return res
 
 
@@ -501,19 +502,20 @@ def resolve_var(variable_arr, res_name):
     imaginary = 0
     for x in variable_arr:
         if x[0] == res_name:
-            op = rpn.rpn(x[1])
+            dup = x[1]
+            op = rpn.rpn(dup)
             index = 0
             while index < len(op):
                 if re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', op[index])\
                         or (re.match('[a-zA-Z_]([a-zA-Z0-9_]*)', op[index]) and op[index] != 'i'):
                     op[index] = str(resolve_var(variable_arr, op[index]))
                 index += 1
-            if any(j == 'i' for j in x[1]):
+            if any(j == 'i' for j in dup):
                 imaginary = 1
             if imaginary == 0:
                 res = resolve_rpn(op)
             else:
-                res = resolve_imaginary(x[1], variable_arr, [], [])
+                res = resolve_imaginary(dup, variable_arr, [], [])
 
     if len(op) == 1:
         return int(op[0])
@@ -526,15 +528,16 @@ def detect_fun(unknown, variable_arr, function_arr, value, fun_name):
     matrix = 0
     for x in function_arr:
         if x[0] == fun_name:
-            op = x[2]
+            dup = x
+            op = dup[2]
             index = 0
-            for j in x[2]:
+            for j in dup[2]:
                 if j == '[':
                     matrix = 2  # 2 == MATRIX
                 if j == 'i':
                     imaginary = 1  # 1 == IMAGINARY
             while index < len(op):
-                if op[index] == x[1]:
+                if op[index] == dup[1]:
                     op[index] = value
                 elif re.match('var[a-zA-Z_]([a-zA-Z0-9_]*)', op[index]):
                     if detect_var(variable_arr, op[index]) != 0:
@@ -572,8 +575,9 @@ def detect_var(variable_arr, res_name):
     matrix = 0
     for x in variable_arr:
         if x[0] == res_name:
-            op = x[1]
-            for j in x[1]:
+            dup = x
+            op = dup[1]
+            for j in dup[1]:
                 if j == '[':
                     matrix = 2  # 2 == MATRIX
                 if j == 'i':
@@ -606,6 +610,7 @@ def detect_type(equation, variable_arr, function_arr, local_arr):
     imaginary = 0
     matrix = 0
     ind = 0
+    verified = 0
     for j in equation:
         if j == 'i':
             imaginary = 1
@@ -652,7 +657,8 @@ def detect_type(equation, variable_arr, function_arr, local_arr):
             if verified != 1:
                 print("Unknown Variable name used. Please check input, or reference var " + j)
                 return -1
-        elif not is_number(j) and j != '+' and j != '/' and j != '-' and j != '*' and j != '%' and j != '^':
+        elif not is_number(j) and j != '+' and j != '/' and j != '-' and j != '*' and j != '%' and j != '^'\
+                and j != '(' and j != ')' and j != '=' and j != '?':
             for x in local_arr:
                 if x[0] == j:
                     tmp = detect_var(local_arr, x[0])
@@ -805,16 +811,6 @@ def resolve_matrix(equation, variable_arr, local_arr, function_arr):
     equation = filter(None, equation)
     equation = filter(str.strip, equation)
     equation = " ".join(equation)
-    # In case we are lazy
-
-    # if len(equation) != 3:
-    #     print(equation)
-    #     return 1
-    # if '[' not in equation[0] or '[' not in equation[2]:
-    #     print(equation)
-    #     return 1
-
-    #  WE ARE AT THE POINT WHERE WE WANNA RESOLVE A MATRIX FACTORIAL
 
     print(equation)
     return 1

@@ -998,7 +998,7 @@ def multiplication_matrix(equation, index):
                 res = str(x)
     else:
         LR = []
-        L1 = re.split(num1)
+        L1 = num1.split(' ')
         sizel1 = 0
         colL1 = 0
         i = 0
@@ -1012,7 +1012,7 @@ def multiplication_matrix(equation, index):
 
         sizel2 = 0
         colL2 = 0
-        L2 = re.split(num2)
+        L2 = num2.split(' ')
         i = 0
         while i < len(L2):
             if L2[i] == ']':
@@ -1025,8 +1025,37 @@ def multiplication_matrix(equation, index):
         if colL1 != colL2:
             print("Trying to multiply matrix of not the same size, please verify input")
             return -1
+        if colL1 == 1 or colL2 == 2:
+            print("Can't make the product of matrix with 1 dimension")
+            return -1
+        i1 = 0
+        i2 = 0
+        while i1 < len(L1):
+            LR.append('[')
+            i1 += 1
+            facto = []
+            while L1[i1] != ']':
+                facto.append(L1[i1])
+                i1 += 1
+            i2 = 1
+            rep = colL2
+            while rep > 0:
+                sum = 0
+                dec = 0
+                for x in facto:
+                    sum = sum + int(x) * int(L2[i2 + dec])
+                    dec += colL2 + 2
+                LR.append(str(sum))
+                i2 += 1
+                rep -=1
+            LR.append(']')
+            i1 += 1
 
-        return ""
+        for x in LR:
+            if res != "":
+                res = res + " " + str(x)
+            else:
+                res = str(x)
 
     i = 0
     dup = []
