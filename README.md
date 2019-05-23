@@ -20,7 +20,7 @@ There is no forced languages, I decided to use python.
 My project mark is : 
 Computorv1 : 125/100
 
-Computorv2 : Not Pushed Yet
+Computorv2 : 93/100
 
 If you want to test our project, you just have to build then
 
